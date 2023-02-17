@@ -1,5 +1,5 @@
 import numpy as np
-import openCV
+import cv2
 
 class Blob:
     def __init__(self, size):
