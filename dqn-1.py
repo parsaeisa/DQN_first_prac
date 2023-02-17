@@ -5,6 +5,16 @@ from keras.optimizers import Adam
 
 
 class DQNAgent:
+    def __init__(self):
+        # For every single step that this agent takes, we call model.Predict.
+
+        # Main model - gets trained in every step
+        self.model = self.create_model()
+
+        # Target model - this predicts in every step
+        self.target_model = self.create_model()
+        self.target_model.set_weights(self.model.get_weights())
+
     def create_model(self):
         model = Sequential()
         model.add(Conv2D(256, (3, 3), input_shape=env.OBSERVATION_SPACE))
@@ -23,3 +33,5 @@ class DQNAgent:
         model.add(Dense(env.ACTION_SPACE_SIZE, activation="linear"))
 
         model.compile(loss="mse", optimizer=Adam(lr=.001), metrics=['accuracy'])
+
+        return model
