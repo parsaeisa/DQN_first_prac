@@ -1,16 +1,39 @@
-import random
+from logging import ModifiedTensorBoard
+from blob import BlobEnv
 
 import numpy as np
 from keras.models import Sequential
+import tensorflow as tf
 from keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Activation, Flatten
 from keras.optimizers import Adam
 from collections import deque
 
+import time
+import os
+import random
+
+MODEL_NAME = "TEST"
 REPLAY_MEMORY_SIZE = 50_000
 MIN_REPLAY_MEMORY_SIZE = 10_000
 MINIBATCH_SIZE = 64
 DISCOUNT = 0.9
 UPDATE_TARGET_EVERY = 5
+
+MIN_REWARD = -200  # For model save
+MEMORY_FRACTION = 0.20
+
+# Environment settings
+EPISODES = 20_000
+
+# Exploration settings
+epsilon = 1  # not a constant, going to be decayed
+EPSILON_DECAY = 0.99975
+MIN_EPSILON = 0.001
+
+#  Stats settings
+AGGREGATE_STATS_EVERY = 50  # episodes
+SHOW_PREVIEW = False
+
 
 class DQNAgent:
     def __init__(self):
@@ -27,6 +50,8 @@ class DQNAgent:
 
         # We take a random sample from this memory and give it to the network as a batch
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
+
+        self.tensorboard = self.tensorboard = ModifiedTensorBoard(log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
 
     def create_model(self):
         model = Sequential()
@@ -88,7 +113,8 @@ class DQNAgent:
             y.append(current_qs)
 
         self.model.fit(np.array(x)/255, np.array(y)/255, batch_size=MINIBATCH_SIZE
-                       , verbose=0, shuffle=False)
+                       , verbose=0, shuffle=False,
+                       callbacks=[self.tensorboard] if terminal_state else None)
         # * Shuffle is false because we already randomly sampled data from replay memory
 
         if terminal_state:
@@ -97,3 +123,21 @@ class DQNAgent:
         if self.target_update_counter > UPDATE_TARGET_EVERY:
             self.target_model.set_weights(self.model.get_weights())
             self.target_update_counter = 0
+
+env = BlobEnv()
+
+# For stats
+ep_rewards = [-200]
+
+# For more repetitive results
+random.seed(1)
+np.random.seed(1)
+tf.set_random_seed(1)
+
+# Memory fraction, used mostly when trai8ning multiple agents
+#gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=MEMORY_FRACTION)
+#backend.set_session(tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)))
+
+# Create models folder
+if not os.path.isdir('models'):
+    os.makedirs('models')
