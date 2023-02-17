@@ -40,3 +40,8 @@ class DQNAgent:
         model.compile(loss="mse", optimizer=Adam(lr=.001), metrics=['accuracy'])
 
         return model
+
+    def update_replay_memory(self, transition):
+        # transitions is our observation from , It consists of:
+        # action, reward, next_state, done ( whether it was done or not )
+        self.replay_memory.append(transition)
