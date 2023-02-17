@@ -1,4 +1,5 @@
 from keras.callbacks import TensorBoard
+import tensorflow as tf
 
 
 class ModifiedTensorBoard(TensorBoard):
