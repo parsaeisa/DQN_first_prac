@@ -1,3 +1,4 @@
+import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Activation, Flatten
 from keras.callbacks import TensorBoard
@@ -45,3 +46,6 @@ class DQNAgent:
         # transitions is our observation from , It consists of:
         # action, reward, next_state, done ( whether it was done or not )
         self.replay_memory.append(transition)
+
+    def get_qs(self, state, step):
+        return self.model.predict(np.array(state).reshape(-1, *state.shape)/255)[0]
