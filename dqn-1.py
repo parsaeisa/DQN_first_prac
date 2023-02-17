@@ -2,7 +2,9 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Activation, Flatten
 from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
+from collections import deque
 
+REPLAY_MEMORY_SIZE = 50_000
 
 class DQNAgent:
     def __init__(self):
@@ -14,6 +16,9 @@ class DQNAgent:
         # Target model - this predicts in every step
         self.target_model = self.create_model()
         self.target_model.set_weights(self.model.get_weights())
+
+        # We take a random sample from this memory and give it to the network as a batch
+        self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
     def create_model(self):
         model = Sequential()
