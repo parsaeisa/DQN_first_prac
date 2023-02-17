@@ -1,3 +1,5 @@
+from keras.callbacks import TensorBoard
+
 class ModifiedTensorBoard(TensorBoard):
 
     # Overriding init to set initial step and writer (we want one log file for all .fit() calls)
