@@ -138,5 +138,6 @@ class BlobEnv:
         env[self.food.x][self.food.y] = self.d[self.FOOD_N]  # sets the food location tile to green color
         env[self.enemy.x][self.enemy.y] = self.d[self.ENEMY_N]  # sets the enemy location to red
         env[self.player.x][self.player.y] = self.d[self.PLAYER_N]  # sets the player tile to blue
-        img = Image.fromarray(env, 'RGB')  # reading to rgb. Apparently. Even tho color definitions are bgr. ???
+        # img = Image.fromarray(env, 'RGB')  # reading to rgb. Apparently. Even tho color definitions are bgr. ???
+        img = cv2.cvtColor(env, cv2.COLOR_BGR2RGB)
         return img
