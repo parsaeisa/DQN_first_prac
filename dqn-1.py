@@ -1,11 +1,12 @@
-from logging import ModifiedTensorBoard
+# from logging import ModifiedTensorBoard
 from blob import BlobEnv
+from tensorflow.keras.callbacks import TensorBoard
 
 import numpy as np
-from keras.models import Sequential
+from tensorflow.keras.models import Sequential
 import tensorflow as tf
-from keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Activation, Flatten
-from keras.optimizers import Adam
+from tensorflow.keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Activation, Flatten
+from tensorflow.keras.optimizers import Adam
 from collections import deque
 from tqdm import tqdm
 
@@ -52,7 +53,7 @@ class DQNAgent:
         # We take a random sample from this memory and give it to the network as a batch
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
-        self.tensorboard = self.tensorboard = ModifiedTensorBoard(
+        self.tensorboard = ModifiedTensorBoard(
             log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
 
     def create_model(self):
@@ -191,3 +192,35 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit="episode"):
     if epsilon > MIN_EPSILON:
         epsilon *= EPSILON_DECAY
         epsilon = max(MIN_EPSILON, epsilon)
+
+
+class ModifiedTensorBoard(TensorBoard):
+
+    # Overriding init to set initial step and writer (we want one log file for all .fit() calls)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.step = 1
+        self.writer = tf.summary.FileWriter(self.log_dir)
+
+    # Overriding this method to stop creating default log writer
+    def set_model(self, model):
+        pass
+
+    # Overrided, saves logs with our step number
+    # (otherwise every .fit() will start writing from 0th step)
+    def on_epoch_end(self, epoch, logs=None):
+        self.update_stats(**logs)
+
+    # Overrided
+    # We train for one batch only, no need to save anything at epoch end
+    def on_batch_end(self, batch, logs=None):
+        pass
+
+    # Overrided, so won't close writer
+    def on_train_end(self, _):
+        pass
+
+    # Custom method for saving own metrics
+    # Creates writer, writes custom metrics and closes writer
+    def update_stats(self, **stats):
+        self._write_logs(stats, self.step)
