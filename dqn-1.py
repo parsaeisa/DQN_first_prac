@@ -44,7 +44,7 @@ class ModifiedTensorBoard(TensorBoard):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.step = 1
-        self.writer = tf.summary.FileWriter(self.log_dir)
+        self.writer = tf.compat.v1.summary.FileWriter(self.log_dir)
 
     # Overriding this method to stop creating default log writer
     def set_model(self, model):
@@ -87,8 +87,9 @@ class DQNAgent:
         # We take a random sample from this memory and give it to the network as a batch
         self.replay_memory = deque(maxlen=REPLAY_MEMORY_SIZE)
 
-        self.tensorboard = ModifiedTensorBoard(
-            log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
+        self.tensorboard = TensorBoard()
+            # ModifiedTensorBoard(
+            # log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
 
     def create_model(self):
         model = Sequential()
@@ -116,7 +117,7 @@ class DQNAgent:
         # action, reward, next_state, done ( whether it was done or not )
         self.replay_memory.append(transition)
 
-    def get_qs(self, state, step):
+    def get_qs(self, state):
         return self.model.predict(np.array(state).reshape(-1, *state.shape) / 255)[0]
 
     def train(self, terminal_state, step):
@@ -214,8 +215,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit="episode"):
         average_reward = sum(ep_rewards[-AGGREGATE_STATS_EVERY:]) / len(ep_rewards[-AGGREGATE_STATS_EVERY:])
         min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
         max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
-        agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward,
-                                       epsilon=epsilon)
+        # agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward,
+        #                                epsilon=epsilon)
 
         # Save model, but only when min reward is greater or equal a set value
         if min_reward >= MIN_REWARD:
